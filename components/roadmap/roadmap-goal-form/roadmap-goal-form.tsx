@@ -19,18 +19,6 @@ const roadmapGoalSchema = z.object({
   title: z.string().trim().min(1, "الهدف مطلوب."),
   description: z.string(),
   horizon: z.enum(["SHORT", "MEDIUM", "LONG"]),
-  targetYear: z
-    .string()
-    .trim()
-    .refine(
-      (value) =>
-        value === "" ||
-        (Number.isInteger(Number(value)) &&
-          Number(value) >= 2000 &&
-          Number(value) <= 9999),
-      "أدخل سنة صحيحة.",
-    ),
-  targetDate: z.string(),
 });
 
 type RoadmapGoalFormValues = z.infer<typeof roadmapGoalSchema>;
@@ -58,25 +46,11 @@ type RoadmapGoalFormProps =
   | CreateRoadmapGoalFormProps
   | EditRoadmapGoalFormProps;
 
-function toTargetYear(value: string): number | null {
-  return value.trim() ? Number(value) : null;
-}
-
-function toTargetDate(value: string): string | null {
-  return value || null;
-}
-
 export function RoadmapGoalForm(props: RoadmapGoalFormProps) {
   const { user } = useAuth();
   const initialTitle = props.mode === "edit" ? props.goal.title : "";
   const initialDescription = props.mode === "edit" ? props.goal.description : "";
   const initialHorizon = props.mode === "edit" ? props.goal.horizon : props.horizon;
-  const initialTargetYear =
-    props.mode === "edit" && props.goal.targetYear !== null
-      ? String(props.goal.targetYear)
-      : "";
-  const initialTargetDate =
-    props.mode === "edit" ? props.goal.targetDate ?? "" : "";
   const {
     register,
     handleSubmit,
@@ -88,8 +62,6 @@ export function RoadmapGoalForm(props: RoadmapGoalFormProps) {
       title: initialTitle,
       description: initialDescription,
       horizon: initialHorizon,
-      targetYear: initialTargetYear,
-      targetDate: initialTargetDate,
     },
   });
 
@@ -102,14 +74,10 @@ export function RoadmapGoalForm(props: RoadmapGoalFormProps) {
       title: initialTitle,
       description: initialDescription,
       horizon: initialHorizon,
-      targetYear: initialTargetYear,
-      targetDate: initialTargetDate,
     });
   }, [
     initialDescription,
     initialHorizon,
-    initialTargetDate,
-    initialTargetYear,
     initialTitle,
     props.open,
     reset,
@@ -145,9 +113,6 @@ export function RoadmapGoalForm(props: RoadmapGoalFormProps) {
       return;
     }
 
-    const targetYear = toTargetYear(values.targetYear);
-    const targetDate = toTargetDate(values.targetDate);
-
     try {
       if (props.mode === "edit") {
         const horizonChanged = values.horizon !== props.goal.horizon;
@@ -156,8 +121,8 @@ export function RoadmapGoalForm(props: RoadmapGoalFormProps) {
           title: values.title,
           description: values.description,
           horizon: values.horizon,
-          targetYear,
-          targetDate,
+          targetYear: null,
+          targetDate: null,
           order: horizonChanged
             ? props.getNextGoalOrder(values.horizon)
             : props.goal.order,
@@ -170,8 +135,8 @@ export function RoadmapGoalForm(props: RoadmapGoalFormProps) {
           title: values.title,
           description: values.description,
           horizon: values.horizon,
-          targetYear,
-          targetDate,
+          targetYear: null,
+          targetDate: null,
           order: props.getNextGoalOrder(values.horizon),
           createdBy: user.uid,
           createdByName: user.displayName,
@@ -265,39 +230,6 @@ export function RoadmapGoalForm(props: RoadmapGoalFormProps) {
               <option value="MEDIUM">متوسط المدى</option>
               <option value="LONG">بعيد المدى</option>
             </select>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="roadmap-goal-target-year">
-                السنة المستهدفة
-              </label>
-              <input
-                id="roadmap-goal-target-year"
-                type="number"
-                min={2000}
-                max={9999}
-                className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-                placeholder="2030"
-                {...register("targetYear")}
-              />
-              {errors.targetYear ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {errors.targetYear.message}
-                </p>
-              ) : null}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="roadmap-goal-target-date">
-                التاريخ المستهدف
-              </label>
-              <input
-                id="roadmap-goal-target-date"
-                type="date"
-                className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-                {...register("targetDate")}
-              />
-            </div>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-1">

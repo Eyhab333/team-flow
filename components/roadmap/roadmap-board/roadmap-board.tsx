@@ -285,7 +285,7 @@ export function RoadmapBoard({ teamId, memberId }: RoadmapBoardProps) {
       </header>
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <div className="grid gap-3 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4">
           {HORIZON_SECTIONS.map(({ horizon, title, emptyMessage }) => (
             <RoadmapSection
               key={horizon}

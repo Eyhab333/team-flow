@@ -7,7 +7,6 @@ import {
   Circle,
   CircleDot,
   Clock3,
-  Forward,
   GripVertical,
   LoaderCircle,
 } from "lucide-react";
@@ -32,15 +31,6 @@ interface TaskItemRowProps {
   sortable?: boolean;
 }
 
-function formatArabicDate(dateValue: string): string {
-  const [year, month, day] = dateValue.split("-").map(Number);
-
-  return new Intl.DateTimeFormat("ar-EG-u-ca-gregory", {
-    day: "numeric",
-    month: "long",
-  }).format(new Date(year, month - 1, day));
-}
-
 function formatArabicTime(timestamp: Task["startedAt"]): string | null {
   if (!timestamp) {
     return null;
@@ -60,7 +50,6 @@ function getCheckboxLabel(task: Task): string {
 
 export function TaskItemRow({
   task,
-  selectedDate,
   groups,
   getNextTaskOrder,
   onChanged,
@@ -85,7 +74,6 @@ export function TaskItemRow({
   });
   const isCompleted = task.status === "COMPLETED";
   const isInProgress = task.status === "IN_PROGRESS";
-  const isCarriedForward = task.originalDate < selectedDate;
   const startedAt = formatArabicTime(task.startedAt);
   const completedAt = formatArabicTime(task.completedAt);
   const taskActionContext =
@@ -218,12 +206,6 @@ export function TaskItemRow({
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>أضافها: {task.createdByName}</span>
-          {isCarriedForward ? (
-            <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300">
-              <Forward aria-hidden="true" className="size-3" />
-              مرحّلة من {formatArabicDate(task.originalDate)}
-            </span>
-          ) : null}
           {isInProgress && startedAt ? <span>بدأت {startedAt}</span> : null}
           {isCompleted && completedAt ? <span>تمت {completedAt}</span> : null}
         </div>

@@ -11,7 +11,6 @@ import {
   LoaderCircle,
   Pencil,
   RotateCcw,
-  Target,
   Trash2,
   X,
 } from "lucide-react";
@@ -33,16 +32,6 @@ interface RoadmapGoalCardProps {
   getNextGoalOrder: (horizon: RoadmapHorizon) => number;
   onChanged: () => void | Promise<void>;
   sortable?: boolean;
-}
-
-function formatArabicDate(dateValue: string): string {
-  const [year, month, day] = dateValue.split("-").map(Number);
-
-  return new Intl.DateTimeFormat("ar-EG-u-ca-gregory", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(year, month - 1, day));
 }
 
 export function RoadmapGoalCard({
@@ -133,6 +122,10 @@ export function RoadmapGoalCard({
     }
   }
 
+  function handleCompletionControlClick(): void {
+    void runMutation(isCompleted ? "reopen" : "complete");
+  }
+
   return (
     <>
       <article
@@ -162,14 +155,32 @@ export function RoadmapGoalCard({
               <GripVertical aria-hidden="true" className="size-4" />
             </button>
           ) : null}
-          {isCompleted ? (
-            <CheckCircle2
-              aria-label="مكتمل"
-              className="mt-0.5 size-5 shrink-0 text-emerald-600 dark:text-emerald-400"
-            />
-          ) : (
-            <Circle aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="mt-0.5 shrink-0 rounded-full"
+            aria-label={
+              isCompleted
+                ? `إعادة فتح الهدف: ${goal.title}`
+                : `إكمال الهدف: ${goal.title}`
+            }
+            disabled={!user || isMutating}
+            aria-busy={isMutating}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={handleCompletionControlClick}
+          >
+            {isMutating && (mutation === "complete" || mutation === "reopen") ? (
+              <LoaderCircle aria-hidden="true" className="size-5 animate-spin" />
+            ) : isCompleted ? (
+              <CheckCircle2
+                aria-hidden="true"
+                className="size-5 text-emerald-600 dark:text-emerald-400"
+              />
+            ) : (
+              <Circle aria-hidden="true" className="size-5 text-muted-foreground" />
+            )}
+          </Button>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -284,13 +295,6 @@ export function RoadmapGoalCard({
 
             <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span>أضافه: {goal.createdByName}</span>
-              {goal.targetYear !== null ? <span>مستهدف: {goal.targetYear}</span> : null}
-              {goal.targetDate ? (
-                <span className="inline-flex items-center gap-1">
-                  <Target aria-hidden="true" className="size-3" />
-                  تاريخ مستهدف: {formatArabicDate(goal.targetDate)}
-                </span>
-              ) : null}
             </div>
           </div>
         </div>

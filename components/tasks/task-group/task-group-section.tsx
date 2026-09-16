@@ -16,7 +16,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Archive, ChevronDown, GripVertical, Plus } from "lucide-react";
+import { ChevronDown, GripVertical, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -39,15 +39,6 @@ interface TaskGroupSectionProps {
   isGroupReordering?: boolean;
 }
 
-function formatArabicDate(dateValue: string): string {
-  const [year, month, day] = dateValue.split("-").map(Number);
-
-  return new Intl.DateTimeFormat("ar-EG-u-ca-gregory", {
-    day: "numeric",
-    month: "long",
-  }).format(new Date(year, month - 1, day));
-}
-
 export function TaskGroupSection({
   groupView,
   selectedDate,
@@ -58,7 +49,7 @@ export function TaskGroupSection({
   isGroupReordering = false,
 }: TaskGroupSectionProps) {
   const { user } = useAuth();
-  const { group, tasks, isHistorical } = groupView;
+  const { group, tasks } = groupView;
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isReorderingTasks, setIsReorderingTasks] = useState(false);
@@ -182,12 +173,6 @@ export function TaskGroupSection({
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          {isHistorical ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
-              <Archive aria-hidden="true" className="size-3" />
-              مجموعة مرحّلة من {formatArabicDate(group.originalDate)}
-            </span>
-          ) : null}
           {sortable ? (
             <button
               ref={setGroupActivatorNodeRef}
