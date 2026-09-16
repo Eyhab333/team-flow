@@ -1,0 +1,145 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isActiveUser() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active == true;
+    }
+
+    function membershipId(teamId, userId) {
+      return teamId + "__" + userId;
+    }
+
+    function hasActiveMembership(teamId) {
+      return exists(
+        /databases/$(database)/documents/teamMemberships/$(membershipId(teamId, request.auth.uid))
+      ) && get(
+        /databases/$(database)/documents/teamMemberships/$(membershipId(teamId, request.auth.uid))
+      ).data.active == true;
+    }
+
+    function isTeamLeader(teamId) {
+      return hasActiveMembership(teamId)
+        && get(
+          /databases/$(database)/documents/teamMemberships/$(membershipId(teamId, request.auth.uid))
+        ).data.role == "LEADER";
+    }
+
+    function isSelf(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function canAccessMemberWork(teamId, memberId) {
+      return isTeamLeader(teamId)
+        || (isSelf(memberId) && hasActiveMembership(teamId));
+    }
+
+    function isTeamCreator(teamId) {
+      return exists(/databases/$(database)/documents/teams/$(teamId))
+        && get(/databases/$(database)/documents/teams/$(teamId)).data.createdBy == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      // Active users can load profile details for team-member sidebar lookups.
+      allow get, list: if isActiveUser();
+      allow create: if isActiveUser();
+      allow update: if isActiveUser();
+    }
+
+    match /teams/{teamId} {
+      allow get, list: if isActiveUser() && hasActiveMembership(teamId);
+      allow create: if isActiveUser()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isActiveUser() && isTeamLeader(teamId);
+    }
+
+    match /teamMemberships/{documentId} {
+      allow get, list: if isActiveUser()
+        && (isSelf(resource.data.userId) || isTeamLeader(resource.data.teamId));
+
+      allow create: if isActiveUser()
+        && documentId == membershipId(
+          request.resource.data.teamId,
+          request.resource.data.userId
+        )
+        && (
+          isTeamLeader(request.resource.data.teamId)
+          || (
+            request.resource.data.userId == request.auth.uid
+            && request.resource.data.role == "LEADER"
+            && isTeamCreator(request.resource.data.teamId)
+            && !exists(
+              /databases/$(database)/documents/teamMemberships/$(membershipId(
+                request.resource.data.teamId,
+                request.auth.uid
+              ))
+            )
+          )
+        );
+
+      allow update: if isActiveUser()
+        && isTeamLeader(resource.data.teamId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.teamId == resource.data.teamId
+        && request.resource.data.userId == resource.data.userId;
+    }
+
+    match /taskGroups/{groupId} {
+      allow get, list: if isActiveUser()
+        && canAccessMemberWork(resource.data.teamId, resource.data.memberId);
+      allow create: if isActiveUser()
+        && canAccessMemberWork(
+          request.resource.data.teamId,
+          request.resource.data.memberId
+        );
+      allow update: if isActiveUser()
+        && canAccessMemberWork(resource.data.teamId, resource.data.memberId)
+        && canAccessMemberWork(
+          request.resource.data.teamId,
+          request.resource.data.memberId
+        );
+    }
+
+    match /tasks/{taskId} {
+      allow get, list: if isActiveUser()
+        && canAccessMemberWork(resource.data.teamId, resource.data.memberId);
+      allow create: if isActiveUser()
+        && canAccessMemberWork(
+          request.resource.data.teamId,
+          request.resource.data.memberId
+        );
+      allow update: if isActiveUser()
+        && canAccessMemberWork(resource.data.teamId, resource.data.memberId)
+        && canAccessMemberWork(
+          request.resource.data.teamId,
+          request.resource.data.memberId
+        );
+    }
+
+    match /roadmapGoals/{goalId} {
+      allow get, list: if isActiveUser()
+        && canAccessMemberWork(resource.data.teamId, resource.data.memberId);
+      allow create: if isActiveUser()
+        && canAccessMemberWork(
+          request.resource.data.teamId,
+          request.resource.data.memberId
+        );
+      allow update: if isActiveUser()
+        && canAccessMemberWork(resource.data.teamId, resource.data.memberId)
+        && canAccessMemberWork(
+          request.resource.data.teamId,
+          request.resource.data.memberId
+        );
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
