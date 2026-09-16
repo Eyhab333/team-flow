@@ -1,8 +1,7 @@
 "use client";
 
 import { CalendarDays, LoaderCircle, Map } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 import { RoadmapBoard } from "@/components/roadmap/roadmap-board/roadmap-board";
 import { DailyTasksView } from "@/components/tasks/daily-tasks-view";
@@ -55,7 +54,17 @@ function WorkspaceTabPanel({ activeTab }: { activeTab: WorkspaceTab }) {
 }
 
 export function MemberWorkspaceTabs() {
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>("daily-tasks");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { memberId } = useParams<{ memberId: string }>();
+  const activeTab: WorkspaceTab =
+    searchParams.get("tab") === "roadmap" ? "roadmap" : "daily-tasks";
+
+  function selectTab(tab: WorkspaceTab): void {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.set("tab", tab === "roadmap" ? "roadmap" : "tasks");
+    router.replace(`/workspace/${memberId}?${nextParams.toString()}`);
+  }
 
   return (
     <section className="mt-6">
@@ -75,7 +84,7 @@ export function MemberWorkspaceTabs() {
               ? "bg-card text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
-          onClick={() => setActiveTab("daily-tasks")}
+          onClick={() => selectTab("daily-tasks")}
         >
           <CalendarDays aria-hidden="true" className="size-4" />
           المهام اليومية
@@ -91,7 +100,7 @@ export function MemberWorkspaceTabs() {
               ? "bg-card text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
-          onClick={() => setActiveTab("roadmap")}
+          onClick={() => selectTab("roadmap")}
         >
           <Map aria-hidden="true" className="size-4" />
           الرؤية / خارطة الطريق

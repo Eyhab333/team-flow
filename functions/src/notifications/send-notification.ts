@@ -1,0 +1,133 @@
+import { createHash } from "node:crypto";
+import { FieldValue } from "firebase-admin/firestore";
+import { getMessaging } from "firebase-admin/messaging";
+
+import { db } from "../firebase-admin.js";
+import { getActorName, getNotificationRecipients } from "./recipients.js";
+import type { NotificationInput } from "./types.js";
+
+function notificationIdFor(eventId: string, recipientUserId: string): string {
+  return createHash("sha256")
+    .update(`${eventId}:${recipientUserId}`)
+    .digest("hex");
+}
+
+function chunks<T>(values: T[], chunkSize: number): T[][] {
+  const result: T[][] = [];
+  for (let index = 0; index < values.length; index += chunkSize) {
+    result.push(values.slice(index, index + chunkSize));
+  }
+  return result;
+}
+
+function isInvalidInstallationError(code?: string): boolean {
+  return code === "messaging/registration-token-not-registered"
+    || code === "messaging/invalid-registration-token"
+    || code === "messaging/invalid-argument";
+}
+
+async function deactivateInstallations(installationIds: string[]): Promise<void> {
+  await Promise.all(
+    installationIds.map(async (installationId) => {
+      const registrations = await db
+        .collection("deviceRegistrations")
+        .where("installationId", "==", installationId)
+        .get();
+      const batch = db.batch();
+      registrations.docs.forEach((registration) => {
+        batch.update(registration.ref, {
+          active: false,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      });
+      if (!registrations.empty) await batch.commit();
+    }),
+  );
+}
+
+async function sendPush(
+  recipientUserId: string,
+  notificationId: string,
+  notification: NotificationInput,
+): Promise<void> {
+  const registrations = await db
+    .collection("deviceRegistrations")
+    .where("userId", "==", recipientUserId)
+    .where("active", "==", true)
+    .get();
+  const installationIds = [
+    ...new Set(
+      registrations.docs
+        .map((registration) => registration.data().installationId)
+        .filter((installationId): installationId is string => typeof installationId === "string"),
+    ),
+  ];
+
+  for (const installationChunk of chunks(installationIds, 500)) {
+    try {
+      const response = await getMessaging().sendEachForMulticast({
+        fids: installationChunk,
+        data: {
+          notificationId,
+          type: notification.type,
+          title: notification.title,
+          body: notification.body,
+          link: notification.link,
+          entityId: notification.entityId,
+          entityKind: notification.entityKind,
+        },
+      });
+      const invalidInstallations = response.responses.flatMap((result, index) =>
+        !result.success && isInvalidInstallationError(result.error?.code)
+          ? [installationChunk[index]]
+          : [],
+      );
+      if (invalidInstallations.length > 0) {
+        await deactivateInstallations(invalidInstallations);
+      }
+    } catch (error) {
+      console.error("Push notification delivery failed", { recipientUserId, error });
+    }
+  }
+}
+
+export async function createAndSendNotification(
+  input: NotificationInput,
+): Promise<void> {
+  const [actorName, recipients] = await Promise.all([
+    getActorName(input.actorUserId),
+    getNotificationRecipients(input.teamId, input.memberId, input.actorUserId),
+  ]);
+
+  await Promise.all(
+    recipients.map(async (recipientUserId) => {
+      const notificationId = notificationIdFor(input.eventId, recipientUserId);
+      const notificationRef = db.collection("notifications").doc(notificationId);
+      const wasCreated = await db.runTransaction(async (transaction) => {
+        const existing = await transaction.get(notificationRef);
+        if (existing.exists) return false;
+        transaction.create(notificationRef, {
+          id: notificationId,
+          recipientUserId,
+          actorUserId: input.actorUserId,
+          actorName,
+          teamId: input.teamId,
+          memberId: input.memberId,
+          type: input.type,
+          entityKind: input.entityKind,
+          entityId: input.entityId,
+          title: input.title,
+          body: input.body,
+          link: input.link,
+          readAt: null,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+        return true;
+      });
+
+      if (wasCreated) {
+        await sendPush(recipientUserId, notificationId, input);
+      }
+    }),
+  );
+}

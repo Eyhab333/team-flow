@@ -138,6 +138,20 @@ service cloud.firestore {
         );
     }
 
+    match /notifications/{notificationId} {
+      allow get, list: if isActiveUser()
+        && resource.data.recipientUserId == request.auth.uid;
+      allow update: if isActiveUser()
+        && resource.data.recipientUserId == request.auth.uid
+        && request.resource.data.recipientUserId == resource.data.recipientUserId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["readAt"]);
+    }
+
+    match /deviceRegistrations/{registrationId} {
+      // Registration ownership is maintained exclusively by authenticated callable Functions.
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

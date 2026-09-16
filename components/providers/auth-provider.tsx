@@ -10,11 +10,16 @@ import {
   type ReactNode,
 } from "react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
+import { toast } from "sonner";
 
 import { signOutCurrentUser } from "@/lib/auth";
 import { auth } from "@/lib/firebase/client";
 import { getMembershipsForUser } from "@/lib/firestore/memberships";
 import { getUserById, setUserLastLogin } from "@/lib/firestore/users";
+import {
+  synchronizePushNotifications,
+  unregisterCurrentPushInstallation,
+} from "@/lib/notifications/fcm";
 import type { Membership } from "@/types/membership";
 import type { User } from "@/types/user";
 
@@ -94,6 +99,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setHasAppAccess(true);
         setIsLoading(false);
 
+        void synchronizePushNotifications((payload) => {
+          toast(payload.data?.title ?? "إشعار جديد", {
+            description: payload.data?.body,
+          });
+        }).catch(() => {
+          // Push is optional; a valid application session must remain usable.
+        });
+
         if (shouldUpdateLastLogin) {
           void setUserLastLogin(nextFirebaseUser.uid).catch((lastLoginError) => {
             if (requestId === requestIdRef.current) {
@@ -161,6 +174,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async (): Promise<void> => {
     try {
+      await unregisterCurrentPushInstallation().catch(() => {
+        // Best-effort cleanup prevents push registration failures blocking logout.
+      });
       await signOutCurrentUser();
     } catch (signOutError) {
       setError(toError(signOutError));

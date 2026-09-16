@@ -6,6 +6,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { NotificationPermissionButton } from "@/components/notifications/notification-permission-button";
+import { InstallButton } from "@/components/pwa/install-button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { ThemeToggle } from "@/components/layout/app-header/theme-toggle";
 
@@ -41,6 +44,9 @@ export function AppHeader() {
         </p>
 
         <div className="flex shrink-0 items-center gap-1.5">
+          <InstallButton />
+          <NotificationPermissionButton />
+          <NotificationBell />
           <ThemeToggle />
           <Button
             type="button"

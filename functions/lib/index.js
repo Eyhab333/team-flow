@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.notifyRoadmapGoalUpdated = exports.notifyRoadmapGoalCreated = exports.notifyTaskUpdated = exports.notifyTaskCreated = exports.unregisterDeviceInstallation = exports.registerDeviceInstallation = void 0;
+const v2_1 = require("firebase-functions/v2");
+(0, v2_1.setGlobalOptions)({ region: "me-central2" });
+var devices_js_1 = require("./devices.js");
+Object.defineProperty(exports, "registerDeviceInstallation", { enumerable: true, get: function () { return devices_js_1.registerDeviceInstallation; } });
+Object.defineProperty(exports, "unregisterDeviceInstallation", { enumerable: true, get: function () { return devices_js_1.unregisterDeviceInstallation; } });
+var tasks_js_1 = require("./notifications/tasks.js");
+Object.defineProperty(exports, "notifyTaskCreated", { enumerable: true, get: function () { return tasks_js_1.notifyTaskCreated; } });
+Object.defineProperty(exports, "notifyTaskUpdated", { enumerable: true, get: function () { return tasks_js_1.notifyTaskUpdated; } });
+var roadmap_js_1 = require("./notifications/roadmap.js");
+Object.defineProperty(exports, "notifyRoadmapGoalCreated", { enumerable: true, get: function () { return roadmap_js_1.notifyRoadmapGoalCreated; } });
+Object.defineProperty(exports, "notifyRoadmapGoalUpdated", { enumerable: true, get: function () { return roadmap_js_1.notifyRoadmapGoalUpdated; } });

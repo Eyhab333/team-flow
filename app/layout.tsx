@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Tajawal } from "next/font/google";
 
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
 import "./globals.css";
@@ -35,7 +36,10 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <ServiceWorkerRegistration />
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
