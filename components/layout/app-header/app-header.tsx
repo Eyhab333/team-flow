@@ -38,14 +38,14 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 shrink-0 border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="flex min-h-14 flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 sm:h-14 sm:flex-nowrap sm:py-0 sm:px-6 lg:px-8">
         <p className="min-w-0 truncate text-sm font-semibold text-foreground">
           {displayName ? `مرحبًا، ${displayName}` : "مرحبًا"}
         </p>
 
         <div className="flex shrink-0 items-center gap-1.5">
           <InstallButton />
-          <NotificationPermissionButton />
+          <NotificationPermissionButton className="hidden sm:inline-flex" />
           <NotificationBell />
           <ThemeToggle />
           <Button
@@ -64,6 +64,13 @@ export function AppHeader() {
             )}
             تسجيل الخروج
           </Button>
+        </div>
+
+        <div className="basis-full sm:hidden">
+          <NotificationPermissionButton
+            className="h-11 w-full justify-center text-sm"
+            showLabel
+          />
         </div>
       </div>
     </header>

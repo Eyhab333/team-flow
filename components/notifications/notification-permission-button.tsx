@@ -7,12 +7,31 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { requestAndSynchronizePushNotifications } from "@/lib/notifications/fcm";
 
-export function NotificationPermissionButton() {
+interface NotificationPermissionButtonProps {
+  className?: string;
+  showLabel?: boolean;
+}
+
+export function NotificationPermissionButton({
+  className,
+  showLabel = false,
+}: NotificationPermissionButtonProps) {
   const [permission, setPermission] = useState<NotificationPermission | null>(null);
   const [isEnabling, setIsEnabling] = useState(false);
 
   useEffect(() => {
-    setPermission(Notification.permission);
+    function syncPermission(): void {
+      setPermission(Notification.permission);
+    }
+
+    syncPermission();
+    window.addEventListener("team-flow-notification-permission-change", syncPermission);
+    return () => {
+      window.removeEventListener(
+        "team-flow-notification-permission-change",
+        syncPermission,
+      );
+    };
   }, []);
 
   if (permission !== "default") return null;
@@ -42,7 +61,7 @@ export function NotificationPermissionButton() {
       type="button"
       variant="ghost"
       size="sm"
-      className="gap-1.5 rounded-xl"
+      className={`gap-1.5 rounded-xl ${className ?? ""}`}
       title="تفعيل الإشعارات"
       onClick={() => void enableNotifications()}
       disabled={isEnabling}
@@ -52,8 +71,14 @@ export function NotificationPermissionButton() {
       ) : (
         <BellRing aria-hidden="true" className="size-3.5" />
       )}
-      <span className="hidden sm:inline">تفعيل الإشعارات</span>
-      <span className="sr-only sm:hidden">تفعيل الإشعارات</span>
+      {showLabel ? (
+        <span>تفعيل الإشعارات</span>
+      ) : (
+        <>
+          <span className="hidden sm:inline">تفعيل الإشعارات</span>
+          <span className="sr-only sm:hidden">تفعيل الإشعارات</span>
+        </>
+      )}
     </Button>
   );
 }
