@@ -39,13 +39,11 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-30 shrink-0 border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex min-h-14 flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 sm:h-14 sm:flex-nowrap sm:py-0 sm:px-6 lg:px-8">
-        <p className="min-w-0 truncate text-sm font-semibold text-foreground">
+        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
           {displayName ? `مرحبًا، ${displayName}` : "مرحبًا"}
         </p>
 
         <div className="flex shrink-0 items-center gap-1.5">
-          <InstallButton />
-          <NotificationPermissionButton className="hidden sm:inline-flex" />
           <NotificationBell />
           <ThemeToggle />
           <Button
@@ -66,9 +64,13 @@ export function AppHeader() {
           </Button>
         </div>
 
-        <div className="basis-full sm:hidden">
+        <div className="order-3 flex basis-full gap-2 empty:hidden sm:contents">
+          <InstallButton
+            className="h-11 min-w-0 flex-1 justify-center text-sm sm:h-8 sm:flex-none"
+            showLabel
+          />
           <NotificationPermissionButton
-            className="h-11 w-full justify-center text-sm"
+            className="h-11 min-w-0 flex-1 justify-center text-sm sm:h-8 sm:flex-none"
             showLabel
           />
         </div>

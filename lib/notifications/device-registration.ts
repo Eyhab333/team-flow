@@ -1,13 +1,11 @@
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { httpsCallable } from "firebase/functions";
 
-import { firebaseApp } from "@/lib/firebase/client";
+import { functions } from "@/lib/firebase/client";
 
 type DeviceRegistrationInput = {
   installationId: string;
   userAgent?: string;
 };
-
-const functions = getFunctions(firebaseApp);
 
 export async function registerDeviceInstallation(
   installationId: string,

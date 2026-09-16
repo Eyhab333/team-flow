@@ -10,7 +10,15 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-export function InstallButton() {
+interface InstallButtonProps {
+  className?: string;
+  showLabel?: boolean;
+}
+
+export function InstallButton({
+  className,
+  showLabel = false,
+}: InstallButtonProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
@@ -43,13 +51,19 @@ export function InstallButton() {
       type="button"
       variant="ghost"
       size="sm"
-      className="gap-1.5 rounded-xl"
+      className={`gap-1.5 rounded-xl ${className ?? ""}`}
       title="تثبيت التطبيق"
       onClick={() => void install()}
     >
       <Download aria-hidden="true" className="size-3.5" />
-      <span className="hidden sm:inline">تثبيت التطبيق</span>
-      <span className="sr-only sm:hidden">تثبيت التطبيق</span>
+      {showLabel ? (
+        <span>تثبيت التطبيق</span>
+      ) : (
+        <>
+          <span className="hidden sm:inline">تثبيت التطبيق</span>
+          <span className="sr-only sm:hidden">تثبيت التطبيق</span>
+        </>
+      )}
     </Button>
   );
 }
