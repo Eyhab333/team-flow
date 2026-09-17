@@ -134,8 +134,10 @@ export function TaskItemRow({
           : undefined
       }
       className={`flex gap-3 py-3 first:pt-0 last:pb-0 ${
-        isDragging ? "relative z-10 opacity-50" : ""
-      }`}
+        isInProgress
+          ? "rounded-xl border border-sky-200 bg-sky-50/70 px-3 dark:border-sky-900/70 dark:bg-sky-950/30"
+          : ""
+      } ${isDragging ? "relative z-10 opacity-50" : ""}`}
     >
       {sortable ? (
         <button
@@ -168,7 +170,10 @@ export function TaskItemRow({
             className="size-5 text-emerald-600 dark:text-emerald-400"
           />
         ) : isInProgress ? (
-          <CircleDot aria-hidden="true" className="size-5 text-primary" />
+          <CircleDot
+            aria-hidden="true"
+            className="size-5 text-sky-600 dark:text-sky-400"
+          />
         ) : (
           <Circle aria-hidden="true" className="size-5 text-muted-foreground" />
         )}
@@ -185,7 +190,7 @@ export function TaskItemRow({
               {task.title}
             </h3>
             {isInProgress ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+              <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800 dark:bg-sky-900/40 dark:text-sky-200">
                 <Clock3 aria-hidden="true" className="size-3" />
                 جاري العمل عليها
               </span>
