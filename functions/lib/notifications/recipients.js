@@ -1,15 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ACTOR_NAME_FALLBACK = void 0;
 exports.getActorName = getActorName;
 exports.getNotificationRecipients = getNotificationRecipients;
 const firebase_admin_js_1 = require("../firebase-admin.js");
-const ACTOR_NAME_FALLBACK = "أحد أعضاء الفريق";
+exports.ACTOR_NAME_FALLBACK = "أحد أعضاء الفريق";
 async function getActorName(actorUserId) {
     const actor = await firebase_admin_js_1.db.collection("users").doc(actorUserId).get();
     const displayName = actor.data()?.displayName;
     return typeof displayName === "string" && displayName.trim()
         ? displayName.trim()
-        : ACTOR_NAME_FALLBACK;
+        : exports.ACTOR_NAME_FALLBACK;
 }
 async function getNotificationRecipients(teamId, memberId, actorUserId) {
     const leaders = await firebase_admin_js_1.db

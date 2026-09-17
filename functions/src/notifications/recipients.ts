@@ -1,6 +1,6 @@
 import { db } from "../firebase-admin.js";
 
-const ACTOR_NAME_FALLBACK = "أحد أعضاء الفريق";
+export const ACTOR_NAME_FALLBACK = "أحد أعضاء الفريق";
 
 export async function getActorName(actorUserId: string): Promise<string> {
   const actor = await db.collection("users").doc(actorUserId).get();

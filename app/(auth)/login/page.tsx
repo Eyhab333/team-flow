@@ -28,7 +28,7 @@ export default function LoginPage() {
         <LoginForm />
 
         <p className="mt-6 text-center text-xs leading-5 text-muted-foreground">
-          مساحة عمل خاصة. الحسابات تُدار بواسطة قائد النظام.
+          مساحة عمل خاصة.
         </p>
       </section>
     </main>

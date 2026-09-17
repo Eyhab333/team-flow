@@ -3,7 +3,11 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 
 import { db } from "../firebase-admin.js";
-import { getActorName, getNotificationRecipients } from "./recipients.js";
+import {
+  ACTOR_NAME_FALLBACK,
+  getActorName,
+  getNotificationRecipients,
+} from "./recipients.js";
 import type { NotificationInput } from "./types.js";
 
 function notificationIdFor(eventId: string, recipientUserId: string): string {
@@ -98,6 +102,13 @@ export async function createAndSendNotification(
     getActorName(input.actorUserId),
     getNotificationRecipients(input.teamId, input.memberId, input.actorUserId),
   ]);
+  const title =
+    input.type === "TASK_CREATED"
+      ? actorName === ACTOR_NAME_FALLBACK
+        ? "تمت إضافة مهمة"
+        : `${actorName} أضاف مهمة`
+      : input.title;
+  const notification = { ...input, title };
 
   await Promise.all(
     recipients.map(async (recipientUserId) => {
@@ -109,16 +120,16 @@ export async function createAndSendNotification(
         transaction.create(notificationRef, {
           id: notificationId,
           recipientUserId,
-          actorUserId: input.actorUserId,
+          actorUserId: notification.actorUserId,
           actorName,
-          teamId: input.teamId,
-          memberId: input.memberId,
-          type: input.type,
-          entityKind: input.entityKind,
-          entityId: input.entityId,
-          title: input.title,
-          body: input.body,
-          link: input.link,
+          teamId: notification.teamId,
+          memberId: notification.memberId,
+          type: notification.type,
+          entityKind: notification.entityKind,
+          entityId: notification.entityId,
+          title: notification.title,
+          body: notification.body,
+          link: notification.link,
           readAt: null,
           createdAt: FieldValue.serverTimestamp(),
         });
@@ -126,7 +137,7 @@ export async function createAndSendNotification(
       });
 
       if (wasCreated) {
-        await sendPush(recipientUserId, notificationId, input);
+        await sendPush(recipientUserId, notificationId, notification);
       }
     }),
   );

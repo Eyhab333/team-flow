@@ -82,6 +82,12 @@ async function createAndSendNotification(input) {
         (0, recipients_js_1.getActorName)(input.actorUserId),
         (0, recipients_js_1.getNotificationRecipients)(input.teamId, input.memberId, input.actorUserId),
     ]);
+    const title = input.type === "TASK_CREATED"
+        ? actorName === recipients_js_1.ACTOR_NAME_FALLBACK
+            ? "تمت إضافة مهمة"
+            : `${actorName} أضاف مهمة`
+        : input.title;
+    const notification = { ...input, title };
     await Promise.all(recipients.map(async (recipientUserId) => {
         const notificationId = notificationIdFor(input.eventId, recipientUserId);
         const notificationRef = firebase_admin_js_1.db.collection("notifications").doc(notificationId);
@@ -92,23 +98,23 @@ async function createAndSendNotification(input) {
             transaction.create(notificationRef, {
                 id: notificationId,
                 recipientUserId,
-                actorUserId: input.actorUserId,
+                actorUserId: notification.actorUserId,
                 actorName,
-                teamId: input.teamId,
-                memberId: input.memberId,
-                type: input.type,
-                entityKind: input.entityKind,
-                entityId: input.entityId,
-                title: input.title,
-                body: input.body,
-                link: input.link,
+                teamId: notification.teamId,
+                memberId: notification.memberId,
+                type: notification.type,
+                entityKind: notification.entityKind,
+                entityId: notification.entityId,
+                title: notification.title,
+                body: notification.body,
+                link: notification.link,
                 readAt: null,
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
             });
             return true;
         });
         if (wasCreated) {
-            await sendPush(recipientUserId, notificationId, input);
+            await sendPush(recipientUserId, notificationId, notification);
         }
     }));
 }

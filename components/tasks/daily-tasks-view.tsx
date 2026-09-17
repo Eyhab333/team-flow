@@ -175,7 +175,7 @@ export function DailyTasksView({ teamId, memberId }: DailyTasksViewProps) {
           disabled={isLoading || error !== null}
         >
           <Plus aria-hidden="true" className="size-3.5" />
-          إضافة مجموعة
+          إضافة مجموعة مهام
         </Button>
       </div>
       <DailyDateNavigation
