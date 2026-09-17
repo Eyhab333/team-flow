@@ -22,6 +22,34 @@ let foregroundCleanup: (() => void) | null = null;
 let registrationCleanup: (() => void) | null = null;
 let unregistrationCleanup: (() => void) | null = null;
 
+export type PushNotificationSetupStatus =
+  | "idle"
+  | "registering"
+  | "registered"
+  | "unsupported"
+  | "error";
+
+let setupStatus: PushNotificationSetupStatus = "idle";
+const setupStatusListeners = new Set<
+  (status: PushNotificationSetupStatus) => void
+>();
+
+function setSetupStatus(status: PushNotificationSetupStatus): void {
+  setupStatus = status;
+  setupStatusListeners.forEach((listener) => listener(status));
+}
+
+export function getPushNotificationSetupStatus(): PushNotificationSetupStatus {
+  return setupStatus;
+}
+
+export function subscribeToPushNotificationSetupStatus(
+  listener: (status: PushNotificationSetupStatus) => void,
+): () => void {
+  setupStatusListeners.add(listener);
+  return () => setupStatusListeners.delete(listener);
+}
+
 async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
   const existing = await navigator.serviceWorker.getRegistration("/");
   if (existing) {
@@ -36,43 +64,61 @@ async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration
 export async function synchronizePushNotifications(
   onForegroundMessage: (payload: MessagePayload) => void,
 ): Promise<void> {
-  if (
-    typeof window === "undefined" ||
-    !(await isSupported()) ||
-    Notification.permission !== "granted"
-  ) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (!(await isSupported())) {
+    setSetupStatus("unsupported");
+    return;
+  }
+
+  if (Notification.permission !== "granted") {
+    setSetupStatus("idle");
     return;
   }
 
   const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
   if (!vapidKey) {
+    setSetupStatus("error");
     return;
   }
 
-  const registration = await getServiceWorkerRegistration();
-  const messaging = getMessaging(firebaseApp);
+  setSetupStatus("registering");
 
-  registrationCleanup?.();
-  unregistrationCleanup?.();
-  registrationCleanup = onRegistered(messaging, (installationId) => {
-    activeInstallationId = installationId;
-    void registerDeviceInstallation(installationId).catch(() => {
-      // The FID can be retried on a later app session.
+  try {
+    const registration = await getServiceWorkerRegistration();
+    const messaging = getMessaging(firebaseApp);
+
+    registrationCleanup?.();
+    unregistrationCleanup?.();
+    registrationCleanup = onRegistered(messaging, (installationId) => {
+      activeInstallationId = installationId;
+      void registerDeviceInstallation(installationId)
+        .then(() => setSetupStatus("registered"))
+        .catch(() => setSetupStatus("error"));
     });
-  });
-  unregistrationCleanup = onUnregistered(messaging, (installationId) => {
-    if (activeInstallationId === installationId) {
-      activeInstallationId = null;
-    }
-    void unregisterDeviceInstallation(installationId).catch(() => {
-      // Authentication may already have ended when the browser reports this.
+    unregistrationCleanup = onUnregistered(messaging, (installationId) => {
+      if (activeInstallationId === installationId) {
+        activeInstallationId = null;
+      }
+      setSetupStatus("idle");
+      void unregisterDeviceInstallation(installationId).catch(() => {
+        // Authentication may already have ended when the browser reports this.
+      });
     });
-  });
 
-  foregroundCleanup?.();
-  foregroundCleanup = onMessage(messaging, onForegroundMessage);
+    foregroundCleanup?.();
+    foregroundCleanup = onMessage(messaging, onForegroundMessage);
 
-  await register(messaging, { vapidKey, serviceWorkerRegistration: registration });
+    await register(messaging, {
+      vapidKey,
+      serviceWorkerRegistration: registration,
+    });
+  } catch (error) {
+    setSetupStatus("error");
+    throw error;
+  }
 }
 
 export async function requestAndSynchronizePushNotifications(
@@ -94,6 +140,7 @@ export async function unregisterCurrentPushInstallation(): Promise<void> {
   if (installationId) {
     await unregisterDeviceInstallation(installationId);
     activeInstallationId = null;
+    setSetupStatus("idle");
   }
 
   if (typeof window !== "undefined" && (await isSupported())) {

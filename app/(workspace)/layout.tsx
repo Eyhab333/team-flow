@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { AppHeader } from "@/components/layout/app-header/app-header";
 import { TeamSidebar } from "@/components/layout/app-sidebar/team-sidebar";
+import { FloatingNotificationActivation } from "@/components/notifications/floating-notification-activation";
 
 export default function WorkspaceLayout({
   children,
@@ -21,6 +22,7 @@ export default function WorkspaceLayout({
             {children}
           </main>
         </div>
+        <FloatingNotificationActivation />
       </div>
     </AuthGuard>
   );

@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { NotificationPermissionButton } from "@/components/notifications/notification-permission-button";
 import { InstallButton } from "@/components/pwa/install-button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { ThemeToggle } from "@/components/layout/app-header/theme-toggle";
@@ -66,10 +65,6 @@ export function AppHeader() {
 
         <div className="order-3 flex basis-full gap-2 empty:hidden sm:contents">
           <InstallButton
-            className="h-11 min-w-0 flex-1 justify-center text-sm sm:h-8 sm:flex-none"
-            showLabel
-          />
-          <NotificationPermissionButton
             className="h-11 min-w-0 flex-1 justify-center text-sm sm:h-8 sm:flex-none"
             showLabel
           />
