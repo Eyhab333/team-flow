@@ -2,11 +2,13 @@
 
 import { useEffect } from "react";
 
+import { getMessagingServiceWorkerRegistration } from "@/lib/notifications/fcm";
+
 export function ServiceWorkerRegistration() {
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
-
-    void navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
+    void getMessagingServiceWorkerRegistration().catch(() => {
+      // Push is optional; messaging setup surfaces retryable errors in the UI.
+    });
   }, []);
 
   return null;

@@ -21,6 +21,8 @@ let activeInstallationId: string | null = null;
 let foregroundCleanup: (() => void) | null = null;
 let registrationCleanup: (() => void) | null = null;
 let unregistrationCleanup: (() => void) | null = null;
+let serviceWorkerRegistrationPromise: Promise<ServiceWorkerRegistration> | null =
+  null;
 
 export type PushNotificationSetupStatus =
   | "idle"
@@ -50,15 +52,37 @@ export function subscribeToPushNotificationSetupStatus(
   return () => setupStatusListeners.delete(listener);
 }
 
-async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
-  const existing = await navigator.serviceWorker.getRegistration("/");
-  if (existing) {
-    return existing;
+export function getMessagingServiceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+    return Promise.reject(new Error("Service workers are not supported."));
   }
 
-  return navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-    scope: "/",
-  });
+  if (!serviceWorkerRegistrationPromise) {
+    serviceWorkerRegistrationPromise = (async () => {
+      const existing = await navigator.serviceWorker.getRegistration("/");
+      const registration =
+        existing ??
+        (await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
+          scope: "/",
+        }));
+
+      if (!registration.active) {
+        await navigator.serviceWorker.ready;
+      }
+
+      const activeRegistration = await navigator.serviceWorker.getRegistration("/");
+      if (!activeRegistration?.active) {
+        throw new Error("The Firebase Messaging service worker is not active.");
+      }
+
+      return activeRegistration;
+    })().catch((error) => {
+      serviceWorkerRegistrationPromise = null;
+      throw error;
+    });
+  }
+
+  return serviceWorkerRegistrationPromise;
 }
 
 export async function synchronizePushNotifications(
@@ -87,7 +111,7 @@ export async function synchronizePushNotifications(
   setSetupStatus("registering");
 
   try {
-    const registration = await getServiceWorkerRegistration();
+    const registration = await getMessagingServiceWorkerRegistration();
     const messaging = getMessaging(firebaseApp);
 
     registrationCleanup?.();

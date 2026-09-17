@@ -22,13 +22,14 @@ if (firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId) {
   firebase.initializeApp(firebaseConfig);
   const messaging = firebase.messaging();
   messaging.onBackgroundMessage((payload) => {
-    const data = payload.data || {};
+    const data = payload.data || payload.notification || {};
     const title = data.title || "Team Flow";
     self.registration.showNotification(title, {
       body: data.body || "لديك تحديث جديد.",
       icon: "/icons/team-flow-192.svg",
       badge: "/icons/team-flow-192.svg",
       tag: data.notificationId || undefined,
+      renotify: false,
       data: { link: data.link || "/" },
     });
   });
@@ -38,9 +39,8 @@ self.addEventListener("notificationclick", (event) => {
   const link = new URL((event.notification.data && event.notification.data.link) || "/", self.location.origin).href;
   event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
     for (const client of windows) {
-      if ("focus" in client) {
-        client.navigate(link);
-        return client.focus();
+      if (new URL(client.url).origin === self.location.origin && "focus" in client) {
+        return client.navigate(link).then(() => client.focus());
       }
     }
     return self.clients.openWindow(link);
