@@ -43,3 +43,5 @@ next-env.d.ts
 .claude
 
 node_modules
+
+scripts/seeds/add-executive-team-members.cjs
