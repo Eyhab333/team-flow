@@ -95,6 +95,30 @@ async function sendPush(
   }
 }
 
+function resolveTaskNotificationTitle(
+  input: NotificationInput,
+  actorName: string,
+): string {
+  const actorIsKnown = actorName !== ACTOR_NAME_FALLBACK;
+
+  switch (input.type) {
+    case "TASK_CREATED":
+      return actorIsKnown ? `${actorName} أضاف مهمة` : "تمت إضافة مهمة";
+    case "TASK_STARTED":
+      return actorIsKnown ? `${actorName} بدأ العمل على مهمة` : "بدأ العمل على مهمة";
+    case "TASK_COMPLETED":
+      return actorIsKnown ? `${actorName} أنجز مهمة` : "تم إنجاز مهمة";
+    case "TASK_REOPENED":
+      return actorIsKnown ? `${actorName} أعاد فتح مهمة` : "تمت إعادة فتح مهمة";
+    case "TASK_UPDATED":
+      return actorIsKnown ? `${actorName} عدّل مهمة` : "تم تعديل مهمة";
+    case "TASK_DELETED":
+      return actorIsKnown ? `${actorName} حذف مهمة` : "تم حذف مهمة";
+    default:
+      return input.title;
+  }
+}
+
 export async function createAndSendNotification(
   input: NotificationInput,
 ): Promise<void> {
@@ -102,12 +126,7 @@ export async function createAndSendNotification(
     getActorName(input.actorUserId),
     getNotificationRecipients(input.teamId, input.memberId, input.actorUserId),
   ]);
-  const title =
-    input.type === "TASK_CREATED"
-      ? actorName === ACTOR_NAME_FALLBACK
-        ? "تمت إضافة مهمة"
-        : `${actorName} أضاف مهمة`
-      : input.title;
+  const title = resolveTaskNotificationTitle(input, actorName);
   const notification = { ...input, title };
 
   await Promise.all(
