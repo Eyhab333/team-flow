@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/auth/use-auth";
 import type { DailyTaskGroupView } from "@/hooks/tasks/use-daily-tasks";
 import { completeTask, reopenTask, startTask } from "@/lib/firestore/tasks";
+import { celebrateTaskCompletion } from "@/lib/ui/celebration";
 import type { Task } from "@/types/task";
 
 type TaskWorkflowAction = "start" | "complete" | "reopen";
@@ -103,6 +104,12 @@ export function TaskItemRow({
       }
 
       await onChanged();
+
+      if (action === "complete") {
+        window.requestAnimationFrame(() => {
+          void celebrateTaskCompletion();
+        });
+      }
     } catch {
       toast.error("تعذر تحديث حالة المهمة");
     } finally {
