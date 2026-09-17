@@ -28,7 +28,7 @@ export function NotificationPanel({
   onOpenNotification,
 }: NotificationPanelProps) {
   return (
-    <section className="absolute left-0 top-[calc(100%+0.5rem)] z-50 w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-xl" aria-label="الإشعارات">
+    <section className="fixed inset-x-3 top-16 z-50 w-auto max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-xl sm:absolute sm:left-0 sm:right-auto sm:top-[calc(100%+0.5rem)] sm:w-[min(23rem,calc(100vw-2rem))]" aria-label="الإشعارات">
       <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
         <div>
           <h2 className="text-sm font-bold">الإشعارات</h2>
@@ -42,7 +42,7 @@ export function NotificationPanel({
         ) : null}
       </div>
 
-      <div className="max-h-[min(32rem,calc(100dvh-7rem))] overflow-y-auto">
+      <div className="max-h-[calc(100dvh-5rem)] overflow-y-auto sm:max-h-[min(32rem,calc(100dvh-7rem))]">
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 px-4 py-10 text-sm text-muted-foreground"><LoaderCircle aria-hidden="true" className="size-4 animate-spin" /> جارٍ تحميل الإشعارات</div>
         ) : hasError ? (

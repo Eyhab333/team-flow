@@ -71,7 +71,7 @@ export function NotificationBell() {
       </Button>
       {isOpen ? <>
         <NotificationPanel notifications={notifications} unreadCount={unreadCount} isLoading={isLoading} hasError={Boolean(error)} isMarkingAllRead={isMarkingAllRead} openingNotificationId={openingNotificationId} onMarkAllRead={() => void handleMarkAllRead()} onOpenNotification={(notification) => void handleOpenNotification(notification)} />
-        {permission === "denied" ? <p className="absolute left-0 top-[calc(100%+0.5rem)] z-[60] w-72 rounded-xl border border-border bg-popover px-3 py-2 text-xs text-muted-foreground shadow-lg">الإشعارات محظورة من إعدادات المتصفح</p> : null}
+        {permission === "denied" ? <p className="fixed inset-x-3 top-16 z-[60] w-auto rounded-xl border border-border bg-popover px-3 py-2 text-xs text-muted-foreground shadow-lg sm:absolute sm:left-0 sm:right-auto sm:top-[calc(100%+0.5rem)] sm:w-72">الإشعارات محظورة من إعدادات المتصفح</p> : null}
       </> : null}
     </div>
   );
