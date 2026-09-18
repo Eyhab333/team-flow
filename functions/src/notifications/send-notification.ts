@@ -30,6 +30,10 @@ function isInvalidInstallationError(code?: string): boolean {
     || code === "messaging/invalid-argument";
 }
 
+function webPushLink(link: string): string {
+  return link.startsWith("/") && !link.startsWith("//") ? link : "/";
+}
+
 async function deactivateInstallations(installationIds: string[]): Promise<void> {
   await Promise.all(
     installationIds.map(async (installationId) => {
@@ -79,6 +83,16 @@ async function sendPush(
           link: notification.link,
           entityId: notification.entityId,
           entityKind: notification.entityKind,
+        },
+        webpush: {
+          notification: {
+            title: notification.title,
+            body: notification.body,
+            icon: "/icons/team-flow-192.svg",
+          },
+          fcmOptions: {
+            link: webPushLink(notification.link),
+          },
         },
       });
       const invalidInstallations = response.responses.flatMap((result, index) =>

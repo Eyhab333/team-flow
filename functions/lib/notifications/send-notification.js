@@ -23,6 +23,9 @@ function isInvalidInstallationError(code) {
         || code === "messaging/invalid-registration-token"
         || code === "messaging/invalid-argument";
 }
+function webPushLink(link) {
+    return link.startsWith("/") && !link.startsWith("//") ? link : "/";
+}
 async function deactivateInstallations(installationIds) {
     await Promise.all(installationIds.map(async (installationId) => {
         const registrations = await firebase_admin_js_1.db
@@ -64,6 +67,16 @@ async function sendPush(recipientUserId, notificationId, notification) {
                     entityId: notification.entityId,
                     entityKind: notification.entityKind,
                 },
+                webpush: {
+                    notification: {
+                        title: notification.title,
+                        body: notification.body,
+                        icon: "/icons/team-flow-192.svg",
+                    },
+                    fcmOptions: {
+                        link: webPushLink(notification.link),
+                    },
+                },
             });
             const invalidInstallations = response.responses.flatMap((result, index) => !result.success && isInvalidInstallationError(result.error?.code)
                 ? [installationChunk[index]]
@@ -77,16 +90,31 @@ async function sendPush(recipientUserId, notificationId, notification) {
         }
     }
 }
+function resolveTaskNotificationTitle(input, actorName) {
+    const actorIsKnown = actorName !== recipients_js_1.ACTOR_NAME_FALLBACK;
+    switch (input.type) {
+        case "TASK_CREATED":
+            return actorIsKnown ? `${actorName} أضاف مهمة` : "تمت إضافة مهمة";
+        case "TASK_STARTED":
+            return actorIsKnown ? `${actorName} بدأ العمل على مهمة` : "بدأ العمل على مهمة";
+        case "TASK_COMPLETED":
+            return actorIsKnown ? `${actorName} أنجز مهمة` : "تم إنجاز مهمة";
+        case "TASK_REOPENED":
+            return actorIsKnown ? `${actorName} أعاد فتح مهمة` : "تمت إعادة فتح مهمة";
+        case "TASK_UPDATED":
+            return actorIsKnown ? `${actorName} عدّل مهمة` : "تم تعديل مهمة";
+        case "TASK_DELETED":
+            return actorIsKnown ? `${actorName} حذف مهمة` : "تم حذف مهمة";
+        default:
+            return input.title;
+    }
+}
 async function createAndSendNotification(input) {
     const [actorName, recipients] = await Promise.all([
         (0, recipients_js_1.getActorName)(input.actorUserId),
         (0, recipients_js_1.getNotificationRecipients)(input.teamId, input.memberId, input.actorUserId),
     ]);
-    const title = input.type === "TASK_CREATED"
-        ? actorName === recipients_js_1.ACTOR_NAME_FALLBACK
-            ? "تمت إضافة مهمة"
-            : `${actorName} أضاف مهمة`
-        : input.title;
+    const title = resolveTaskNotificationTitle(input, actorName);
     const notification = { ...input, title };
     await Promise.all(recipients.map(async (recipientUserId) => {
         const notificationId = notificationIdFor(input.eventId, recipientUserId);

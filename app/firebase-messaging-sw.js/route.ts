@@ -27,73 +27,22 @@ const firebaseConfig = {
   messagingSenderId: ${stringify(config.messagingSenderId)},
   appId: ${stringify(config.appId)},
 };
-const appIcon = "/icons/team-flow-192.svg";
-
-function sameOriginLink(value) {
-  const fallback = new URL("/", self.location.origin);
-  try {
-    const link = new URL(value || "/", self.location.origin);
-    return link.origin === self.location.origin ? link.href : fallback.href;
-  } catch {
-    return fallback.href;
-  }
-}
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
-if (firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId) {
+if (
+  firebaseConfig.apiKey &&
+  firebaseConfig.projectId &&
+  firebaseConfig.messagingSenderId &&
+  firebaseConfig.appId
+) {
   firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
 
-  messaging.onBackgroundMessage((payload) => {
-    const data =
-      payload.data && Object.keys(payload.data).length > 0
-        ? payload.data
-        : payload.notification || {};
-    const title = data.title || "Team Flow";
-    const body = data.body || "لديك تحديث جديد.";
-
-    console.debug("[FCM SW] background message received");
-
-    return self.registration.showNotification(title, {
-      body,
-      icon: appIcon,
-      badge: appIcon,
-      tag: data.notificationId || undefined,
-      renotify: false,
-      data: {
-        link: sameOriginLink(data.link),
-        notificationId: data.notificationId || null,
-        type: data.type || null,
-        entityId: data.entityId || null,
-        entityKind: data.entityKind || null,
-      },
-    });
-  });
+  // Firebase Messaging displays webpush.notification payloads in the background
+  // and handles fcmOptions.link click navigation for the same-origin application.
+  firebase.messaging();
 }
-
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  const link = sameOriginLink(event.notification.data && event.notification.data.link);
-
-  event.waitUntil(
-    (async () => {
-      const windows = await self.clients.matchAll({
-        type: "window",
-        includeUncontrolled: true,
-      });
-
-      for (const client of windows) {
-        if (new URL(client.url).origin !== self.location.origin) continue;
-        if ("navigate" in client) await client.navigate(link);
-        return client.focus();
-      }
-
-      return self.clients.openWindow(link);
-    })(),
-  );
-});
 `;
 
   return new Response(source, {
