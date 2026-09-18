@@ -8,7 +8,6 @@ import {
 } from "@/lib/firestore/task-groups";
 import {
   getTasksForMemberDay,
-  getVisibleTasksForMemberDay,
 } from "@/lib/firestore/tasks";
 import type { Task } from "@/types/task";
 import type { TaskGroup } from "@/types/task-group";
@@ -97,11 +96,8 @@ export function useDailyTasks(
       setError(null);
 
       try {
-      const isHistoricalDate = date < getTodayDate();
       const [visibleTasks, todayGroups] = await Promise.all([
-        isHistoricalDate
-          ? getTasksForMemberDay(teamId, memberId, date)
-          : getVisibleTasksForMemberDay(teamId, memberId, date),
+        getTasksForMemberDay(teamId, memberId, date),
         getTaskGroupsForMemberDay(teamId, memberId, date),
       ]);
 

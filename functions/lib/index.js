@@ -1,11 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.notifyRoadmapGoalUpdated = exports.notifyRoadmapGoalCreated = exports.notifyTaskUpdated = exports.notifyTaskCreated = exports.unregisterDeviceInstallation = exports.registerDeviceInstallation = void 0;
+exports.notifyRoadmapGoalUpdated = exports.notifyRoadmapGoalCreated = exports.notifyTaskUpdated = exports.notifyTaskCreated = exports.carryOverUnfinishedTasks = exports.unregisterDeviceInstallation = exports.registerDeviceInstallation = void 0;
 const v2_1 = require("firebase-functions/v2");
 (0, v2_1.setGlobalOptions)({ region: "me-central2" });
 var devices_js_1 = require("./devices.js");
 Object.defineProperty(exports, "registerDeviceInstallation", { enumerable: true, get: function () { return devices_js_1.registerDeviceInstallation; } });
 Object.defineProperty(exports, "unregisterDeviceInstallation", { enumerable: true, get: function () { return devices_js_1.unregisterDeviceInstallation; } });
+var carry_over_js_1 = require("./tasks/carry-over.js");
+Object.defineProperty(exports, "carryOverUnfinishedTasks", { enumerable: true, get: function () { return carry_over_js_1.carryOverUnfinishedTasks; } });
 var tasks_js_1 = require("./notifications/tasks.js");
 Object.defineProperty(exports, "notifyTaskCreated", { enumerable: true, get: function () { return tasks_js_1.notifyTaskCreated; } });
 Object.defineProperty(exports, "notifyTaskUpdated", { enumerable: true, get: function () { return tasks_js_1.notifyTaskUpdated; } });

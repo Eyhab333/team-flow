@@ -29,6 +29,7 @@ export type CreateTaskInput = Pick<
   | "title"
   | "description"
   | "originalDate"
+  | "workDate"
   | "order"
   | "roadmapGoalId"
   | "createdBy"
@@ -39,7 +40,7 @@ export type UpdateTaskData = Pick<Task, "updatedBy"> &
   Partial<
     Pick<
       Task,
-      "title" | "description" | "groupId" | "originalDate" | "order" | "roadmapGoalId"
+      "title" | "description" | "groupId" | "order" | "roadmapGoalId"
     >
   >;
 
@@ -71,13 +72,13 @@ export async function getTasksForGroup(groupId: string): Promise<Task[]> {
 export async function getTasksForMemberDay(
   teamId: string,
   memberId: string,
-  originalDate: string,
+  workDate: string,
 ): Promise<Task[]> {
   const tasksQuery = query(
     collection(db, TASKS_COLLECTION),
     where("teamId", "==", teamId),
     where("memberId", "==", memberId),
-    where("originalDate", "==", originalDate),
+    where("workDate", "==", workDate),
     where("active", "==", true),
     orderBy("order", "asc"),
   );
@@ -88,50 +89,10 @@ export async function getTasksForMemberDay(
   );
 }
 
-export async function getCarriedForwardTasks(
-  teamId: string,
-  memberId: string,
-  beforeDate: string,
-): Promise<Task[]> {
-  const tasksQuery = query(
-    collection(db, TASKS_COLLECTION),
-    where("teamId", "==", teamId),
-    where("memberId", "==", memberId),
-    where("active", "==", true),
-    where("originalDate", "<", beforeDate),
-    orderBy("originalDate", "asc"),
-    orderBy("order", "asc"),
-  );
-  const tasksSnapshot = await getDocs(tasksQuery);
-
-  return tasksSnapshot.docs
-    .map((taskDocument) => taskDocument.data() as Task)
-    .filter(
-      (task) => task.status === "ACTIVE" || task.status === "IN_PROGRESS",
-    );
-}
-
-export async function getVisibleTasksForMemberDay(
-  teamId: string,
-  memberId: string,
-  date: string,
-): Promise<Task[]> {
-  const [dayTasks, carriedForwardTasks] = await Promise.all([
-    getTasksForMemberDay(teamId, memberId, date),
-    getCarriedForwardTasks(teamId, memberId, date),
-  ]);
-  const tasksById = new Map<string, Task>();
-
-  for (const task of [...carriedForwardTasks, ...dayTasks]) {
-    tasksById.set(task.id, task);
-  }
-
-  return [...tasksById.values()];
-}
-
 export async function createTask(input: CreateTaskInput): Promise<string> {
   const title = input.title.trim();
   const originalDate = input.originalDate.trim();
+  const workDate = input.workDate.trim();
   const groupId = input.groupId.trim();
 
   if (!title) {
@@ -140,6 +101,10 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
 
   if (!originalDate) {
     throw new Error("Task original date cannot be empty.");
+  }
+
+  if (!workDate) {
+    throw new Error("Task work date cannot be empty.");
   }
 
   if (!groupId) {
@@ -155,6 +120,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     title,
     description: input.description.trim(),
     originalDate,
+    workDate,
     status: "ACTIVE",
     order: input.order,
     roadmapGoalId: input.roadmapGoalId,
@@ -200,10 +166,6 @@ export async function updateTask(
 
   if (data.groupId !== undefined) {
     updateData.groupId = data.groupId;
-  }
-
-  if (data.originalDate !== undefined) {
-    updateData.originalDate = data.originalDate;
   }
 
   if (data.order !== undefined) {

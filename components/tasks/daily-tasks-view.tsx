@@ -250,7 +250,7 @@ export function DailyTasksView({ teamId, memberId }: DailyTasksViewProps) {
             لا توجد مهام لهذا اليوم
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            ستظهر المهام اليومية والمهمات المرحّلة هنا.
+            ستظهر مهام هذا اليوم هنا.
           </p>
         </div>
         {createGroupForm}

@@ -235,7 +235,7 @@ export function TaskGroupSection({
         mode="create"
         teamId={group.teamId}
         memberId={group.memberId}
-        originalDate={group.originalDate}
+        date={selectedDate}
         groupId={group.id}
         order={getNextTaskOrder(group.id)}
         onClose={() => setIsCreatingTask(false)}

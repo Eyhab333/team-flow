@@ -4,15 +4,54 @@ import { BellDot } from "lucide-react";
 
 import type { AppNotification } from "@/types/notification";
 
+const NOTIFICATION_TIME_ZONE = "Asia/Riyadh";
+const ARABIC_GREGORIAN_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
+
+const notificationDateFormatter = new Intl.DateTimeFormat(
+  ARABIC_GREGORIAN_LOCALE,
+  {
+    timeZone: NOTIFICATION_TIME_ZONE,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  },
+);
+
+const notificationTimeFormatter = new Intl.DateTimeFormat(
+  ARABIC_GREGORIAN_LOCALE,
+  {
+    timeZone: NOTIFICATION_TIME_ZONE,
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  },
+);
+
+function formatPart(
+  parts: Intl.DateTimeFormatPart[],
+  type: Intl.DateTimeFormatPartTypes,
+): string {
+  return parts.find((part) => part.type === type)?.value ?? "";
+}
+
 function formatNotificationDate(notification: AppNotification): string {
   if (!notification.createdAt) {
     return "الآن";
   }
 
-  return new Intl.DateTimeFormat("ar", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(notification.createdAt.toDate());
+  const date = notification.createdAt.toDate();
+  const dateParts = notificationDateFormatter.formatToParts(date);
+  const timeParts = notificationTimeFormatter.formatToParts(date);
+  const weekday = formatPart(dateParts, "weekday");
+  const day = formatPart(dateParts, "day");
+  const month = formatPart(dateParts, "month");
+  const year = formatPart(dateParts, "year");
+  const hour = formatPart(timeParts, "hour");
+  const minute = formatPart(timeParts, "minute");
+  const dayPeriod = formatPart(timeParts, "dayPeriod");
+
+  return `${weekday} ${day} ${month} ${year} · ${hour}:${minute} ${dayPeriod}`;
 }
 
 interface NotificationItemProps {

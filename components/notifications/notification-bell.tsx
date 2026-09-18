@@ -67,7 +67,7 @@ export function NotificationBell() {
     <div ref={containerRef} className="relative">
       <Button type="button" variant="ghost" size="icon" className="relative rounded-xl" aria-label="الإشعارات" aria-expanded={isOpen} onClick={() => setIsOpen((open) => !open)}>
         <Bell aria-hidden="true" className="size-4" />
-        {unreadCount > 0 ? <span className="absolute -left-1 -top-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-primary-foreground">{unreadCount > 99 ? "99+" : unreadCount}</span> : null}
+        {unreadCount > 0 ? <span className="absolute -left-1 -top-2 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-primary-foreground">{unreadCount > 99 ? "99+" : unreadCount}</span> : null}
       </Button>
       {isOpen ? <>
         <NotificationPanel notifications={notifications} unreadCount={unreadCount} isLoading={isLoading} hasError={Boolean(error)} isMarkingAllRead={isMarkingAllRead} openingNotificationId={openingNotificationId} onMarkAllRead={() => void handleMarkAllRead()} onOpenNotification={(notification) => void handleOpenNotification(notification)} />

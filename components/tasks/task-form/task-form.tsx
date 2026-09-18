@@ -31,7 +31,7 @@ interface CreateTaskFormProps extends TaskFormCommonProps {
   mode: "create";
   teamId: string;
   memberId: string;
-  originalDate: string;
+  date: string;
   groupId: string;
   order: number;
 }
@@ -126,7 +126,8 @@ export function TaskForm(props: TaskFormProps) {
           groupId: props.groupId,
           title: values.title,
           description: values.description,
-          originalDate: props.originalDate,
+          originalDate: props.date,
+          workDate: props.date,
           order: props.order,
           roadmapGoalId: null,
           createdBy: user.uid,

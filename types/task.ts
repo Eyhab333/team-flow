@@ -10,6 +10,7 @@ export interface Task {
   title: string;
   description: string;
   originalDate: string;
+  workDate: string;
   status: TaskStatus;
   order: number;
   roadmapGoalId: string | null;

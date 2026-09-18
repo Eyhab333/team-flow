@@ -73,7 +73,7 @@
       "fields": [
         { "fieldPath": "teamId", "order": "ASCENDING" },
         { "fieldPath": "memberId", "order": "ASCENDING" },
-        { "fieldPath": "originalDate", "order": "ASCENDING" },
+        { "fieldPath": "workDate", "order": "ASCENDING" },
         { "fieldPath": "active", "order": "ASCENDING" },
         { "fieldPath": "order", "order": "ASCENDING" }
       ]
@@ -82,11 +82,9 @@
       "collectionGroup": "tasks",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "teamId", "order": "ASCENDING" },
-        { "fieldPath": "memberId", "order": "ASCENDING" },
         { "fieldPath": "active", "order": "ASCENDING" },
-        { "fieldPath": "originalDate", "order": "ASCENDING" },
-        { "fieldPath": "order", "order": "ASCENDING" }
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "workDate", "order": "ASCENDING" }
       ]
     },
     {
