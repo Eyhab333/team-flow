@@ -92,6 +92,10 @@ export async function synchronizePushNotifications(
     return;
   }
 
+  if (Notification.permission === "granted") {
+    setSetupStatus("registering");
+  }
+
   if (!(await isSupported())) {
     setSetupStatus("unsupported");
     return;
@@ -107,8 +111,6 @@ export async function synchronizePushNotifications(
     setSetupStatus("error");
     return;
   }
-
-  setSetupStatus("registering");
 
   try {
     const registration = await getMessagingServiceWorkerRegistration();

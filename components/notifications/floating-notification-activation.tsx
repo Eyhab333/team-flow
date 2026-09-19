@@ -48,19 +48,29 @@ export function FloatingNotificationActivation() {
 
     if (setupStatus === "registered") {
       shouldConfirmSuccessRef.current = false;
+      setIsActivating(false);
       toast.success("تم تفعيل الإشعارات");
     } else if (setupStatus === "error") {
       shouldConfirmSuccessRef.current = false;
+      setIsActivating(false);
       toast.error("تعذر تفعيل الإشعارات");
+    } else if (setupStatus === "unsupported") {
+      shouldConfirmSuccessRef.current = false;
+      setIsActivating(false);
     }
   }, [setupStatus]);
 
+  const isStartupSynchronizing =
+    permission === "granted" &&
+    setupStatus === "registering" &&
+    !isActivating;
   const shouldShow =
     hasAppAccess &&
     permission !== null &&
     permission !== "denied" &&
     setupStatus !== "registered" &&
-    setupStatus !== "unsupported";
+    setupStatus !== "unsupported" &&
+    !isStartupSynchronizing;
 
   if (!shouldShow) return null;
 
@@ -83,8 +93,9 @@ export function FloatingNotificationActivation() {
         window.dispatchEvent(
           new Event("team-flow-notification-permission-change"),
         );
-        if (nextPermission === "denied") {
+        if (nextPermission !== "granted") {
           shouldConfirmSuccessRef.current = false;
+          setIsActivating(false);
         }
       } else {
         await synchronizePushNotifications((payload) => {
@@ -95,13 +106,12 @@ export function FloatingNotificationActivation() {
       }
     } catch {
       shouldConfirmSuccessRef.current = false;
-      toast.error("تعذر تفعيل الإشعارات");
-    } finally {
       setIsActivating(false);
+      toast.error("تعذر تفعيل الإشعارات");
     }
   }
 
-  const isRegistering = isActivating || setupStatus === "registering";
+  const isRetry = permission === "granted" && setupStatus === "error";
 
   return (
     <div className="fixed inset-x-4 bottom-4 z-40 sm:inset-x-auto sm:bottom-6 sm:left-6">
@@ -110,15 +120,19 @@ export function FloatingNotificationActivation() {
         size="lg"
         className="h-12 w-full gap-2 rounded-2xl px-5 shadow-lg sm:w-auto"
         onClick={() => void activate()}
-        disabled={isRegistering}
-        aria-busy={isRegistering}
+        disabled={isActivating}
+        aria-busy={isActivating}
       >
-        {isRegistering ? (
+        {isActivating ? (
           <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
         ) : (
           <BellRing aria-hidden="true" className="size-4" />
         )}
-        {isRegistering ? "جارٍ تفعيل الإشعارات" : "تفعيل الإشعارات"}
+        {isActivating
+          ? "جارٍ تفعيل الإشعارات..."
+          : isRetry
+            ? "إعادة تفعيل الإشعارات"
+            : "تفعيل الإشعارات"}
       </Button>
     </div>
   );
