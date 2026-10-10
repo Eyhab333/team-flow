@@ -78,8 +78,7 @@ export function TaskItemRow({
   const startedAt = formatArabicTime(task.startedAt);
   const completedAt = formatArabicTime(task.completedAt);
   const taskActionContext =
-    groups && getNextTaskOrder && onChanged &&
-    groups.some(({ group }) => group.id === task.groupId)
+    groups && getNextTaskOrder && onChanged
       ? { groups, getNextTaskOrder, onChanged }
       : null;
 
