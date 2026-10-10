@@ -7,14 +7,14 @@ function taskLink(memberId, taskId) {
     return `/workspace/${memberId}?tab=tasks&task=${taskId}`;
 }
 function messageForTask(type, task) {
-    const label = task.title || "Ù…Ù‡Ù…Ø©";
+    const label = task.title || "مهمة";
     switch (type) {
-        case "TASK_CREATED": return { title: "Ù…Ù‡Ù…Ø© Ø¬Ø¯ÙŠØ¯Ø©", body: `ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ù‡Ù…Ø©: ${label}` };
-        case "TASK_STARTED": return { title: "Ø¨Ø¯Ø¡ Ø§Ù„Ø¹Ù…Ù„ Ø¹Ù„Ù‰ Ù…Ù‡Ù…Ø©", body: `Ø¨Ø¯Ø£ Ø§Ù„Ø¹Ù…Ù„ Ø¹Ù„Ù‰ Ø§Ù„Ù…Ù‡Ù…Ø©: ${label}` };
-        case "TASK_COMPLETED": return { title: "ØªÙ… Ø¥Ù†Ø¬Ø§Ø² Ù…Ù‡Ù…Ø©", body: `ØªÙ… Ø¥Ù†Ø¬Ø§Ø² Ø§Ù„Ù…Ù‡Ù…Ø©: ${label}` };
-        case "TASK_REOPENED": return { title: "Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­ Ù…Ù‡Ù…Ø©", body: `ØªÙ…Øª Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­ Ø§Ù„Ù…Ù‡Ù…Ø©: ${label}` };
-        case "TASK_DELETED": return { title: "Ø­Ø°Ù Ù…Ù‡Ù…Ø©", body: `ØªÙ… Ø¥Ø®ÙØ§Ø¡ Ø§Ù„Ù…Ù‡Ù…Ø©: ${label}` };
-        default: return { title: "ØªØ­Ø¯ÙŠØ« Ù…Ù‡Ù…Ø©", body: `ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ù‡Ù…Ø©: ${label}` };
+        case "TASK_CREATED": return { title: "مهمة جديدة", body: `تمت إضافة المهمة: ${label}` };
+        case "TASK_STARTED": return { title: "بدء العمل على مهمة", body: `بدأ العمل على المهمة: ${label}` };
+        case "TASK_COMPLETED": return { title: "تم إنجاز مهمة", body: `تم إنجاز المهمة: ${label}` };
+        case "TASK_REOPENED": return { title: "إعادة فتح مهمة", body: `تمت إعادة فتح المهمة: ${label}` };
+        case "TASK_DELETED": return { title: "حذف مهمة", body: `تم إخفاء المهمة: ${label}` };
+        default: return { title: "تحديث مهمة", body: `تم تحديث المهمة: ${label}` };
     }
 }
 function getUpdateType(before, after) {
