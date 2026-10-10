@@ -106,6 +106,16 @@ service cloud.firestore {
         );
     }
 
+    match /taskTemplates/{templateId} {
+      allow get, list: if isActiveUser()
+        && canAccessMemberWork(resource.data.teamId, resource.data.memberId);
+      allow create: if isActiveUser()
+        && canAccessMemberWork(request.resource.data.teamId, request.resource.data.memberId);
+      allow update: if isActiveUser()
+        && canAccessMemberWork(resource.data.teamId, resource.data.memberId)
+        && canAccessMemberWork(request.resource.data.teamId, request.resource.data.memberId);
+    }
+
     match /tasks/{taskId} {
       allow get, list: if isActiveUser()
         && canAccessMemberWork(resource.data.teamId, resource.data.memberId);
@@ -157,3 +167,4 @@ service cloud.firestore {
     }
   }
 }
+

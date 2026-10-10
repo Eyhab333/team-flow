@@ -33,7 +33,7 @@ function getUpdateType(before: TaskRecord, after: TaskRecord): NotificationType 
 
 export const notifyTaskCreated = onDocumentCreated("tasks/{taskId}", async (event) => {
   const task = event.data?.data() as TaskRecord | undefined;
-  if (!task) return;
+  if (!task || task.generationSource === "SCHEDULE") return;
   const type = "TASK_CREATED";
   const message = messageForTask(type, task);
   await createAndSendNotification({
@@ -70,3 +70,4 @@ export const notifyTaskUpdated = onDocumentUpdated("tasks/{taskId}", async (even
     link: taskLink(after.memberId, event.params.taskId),
   });
 });
+

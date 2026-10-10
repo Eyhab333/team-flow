@@ -1,4 +1,4 @@
-import type { Timestamp } from "firebase/firestore";
+﻿import type { Timestamp } from "firebase/firestore";
 
 export type TaskStatus = "ACTIVE" | "IN_PROGRESS" | "COMPLETED";
 
@@ -11,6 +11,11 @@ export interface Task {
   description: string;
   originalDate: string;
   workDate: string;
+  startDate?: string;
+  dueDate?: string;
+  templateId?: string;
+  scheduledDate?: string;
+  generationSource?: "SCHEDULE";
   status: TaskStatus;
   order: number;
   roadmapGoalId: string | null;

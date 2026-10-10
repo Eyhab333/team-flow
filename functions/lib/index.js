@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.notifyRoadmapGoalUpdated = exports.notifyRoadmapGoalCreated = exports.notifyTaskUpdated = exports.notifyTaskCreated = exports.carryOverUnfinishedTasks = exports.updateAdminUser = exports.updateAdminTeam = exports.transferAdminMembership = exports.setAdminUserPassword = exports.setAdminMembershipActive = exports.setAdminMembership = exports.getAdminDirectory = exports.createAdminUser = exports.createAdminTeam = exports.unregisterDeviceInstallation = exports.registerDeviceInstallation = void 0;
+exports.notifyRoadmapGoalUpdated = exports.notifyRoadmapGoalCreated = exports.notifyTaskUpdated = exports.notifyTaskCreated = exports.ensureDueTaskTemplateOccurrence = exports.generateDueTaskTemplateOccurrences = exports.carryOverUnfinishedTasks = exports.updateAdminUser = exports.updateAdminTeam = exports.transferAdminMembership = exports.setAdminUserPassword = exports.setAdminMembershipActive = exports.setAdminMembership = exports.getAdminDirectory = exports.createAdminUser = exports.createAdminTeam = exports.unregisterDeviceInstallation = exports.registerDeviceInstallation = void 0;
 const v2_1 = require("firebase-functions/v2");
 (0, v2_1.setGlobalOptions)({ region: "me-central2" });
 var devices_js_1 = require("./devices.js");
@@ -18,6 +18,9 @@ Object.defineProperty(exports, "updateAdminTeam", { enumerable: true, get: funct
 Object.defineProperty(exports, "updateAdminUser", { enumerable: true, get: function () { return index_js_1.updateAdminUser; } });
 var carry_over_js_1 = require("./tasks/carry-over.js");
 Object.defineProperty(exports, "carryOverUnfinishedTasks", { enumerable: true, get: function () { return carry_over_js_1.carryOverUnfinishedTasks; } });
+var recurring_js_1 = require("./tasks/recurring.js");
+Object.defineProperty(exports, "generateDueTaskTemplateOccurrences", { enumerable: true, get: function () { return recurring_js_1.generateDueTaskTemplateOccurrences; } });
+Object.defineProperty(exports, "ensureDueTaskTemplateOccurrence", { enumerable: true, get: function () { return recurring_js_1.ensureDueTaskTemplateOccurrenceCallable; } });
 var tasks_js_1 = require("./notifications/tasks.js");
 Object.defineProperty(exports, "notifyTaskCreated", { enumerable: true, get: function () { return tasks_js_1.notifyTaskCreated; } });
 Object.defineProperty(exports, "notifyTaskUpdated", { enumerable: true, get: function () { return tasks_js_1.notifyTaskUpdated; } });

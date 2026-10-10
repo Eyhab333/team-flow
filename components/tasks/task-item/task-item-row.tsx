@@ -220,8 +220,11 @@ export function TaskItemRow({
           <span>أضافها: {task.createdByName}</span>
           {isInProgress && startedAt ? <span>بدأت {startedAt}</span> : null}
           {isCompleted && completedAt ? <span>تمت {completedAt}</span> : null}
+          {task.dueDate ? <span className={task.status !== "COMPLETED" && task.dueDate < new Date().toISOString().slice(0, 10) ? "text-destructive" : undefined}>{task.status !== "COMPLETED" && task.dueDate < new Date().toISOString().slice(0, 10) ? "متأخرة · " : ""}الاستحقاق: {task.dueDate}</span> : null}
+          {task.scheduledDate && task.scheduledDate !== task.workDate ? <span>استحقاق {task.scheduledDate}</span> : null}
         </div>
       </div>
     </article>
   );
 }
+

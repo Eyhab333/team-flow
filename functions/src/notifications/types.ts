@@ -1,4 +1,4 @@
-export type NotificationType =
+﻿export type NotificationType =
   | "TASK_CREATED"
   | "TASK_UPDATED"
   | "TASK_STARTED"
@@ -23,6 +23,7 @@ export interface TaskRecord {
   active: boolean;
   createdBy: string;
   updatedBy?: string;
+  generationSource?: "SCHEDULE";
 }
 
 export interface RoadmapGoalRecord {
@@ -51,3 +52,4 @@ export interface NotificationInput {
   body: string;
   link: string;
 }
+

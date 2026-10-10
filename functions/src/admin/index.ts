@@ -1,4 +1,4 @@
-import { FieldValue } from "firebase-admin/firestore";
+﻿import { FieldValue } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 import { requireAdmin } from "./authorization.js";
@@ -148,7 +148,7 @@ async function addOrReactivateMembership(
 }
 
 async function moveWorkspaceCollection(
-  collectionName: "taskGroups" | "roadmapGoals" | "tasks",
+  collectionName: "taskGroups" | "taskTemplates" | "roadmapGoals" | "tasks",
   userId: string,
   sourceTeamId: string,
   destinationTeamId: string,
@@ -176,6 +176,7 @@ async function moveMemberWorkspace(
   destinationTeamId: string,
 ): Promise<void> {
   await moveWorkspaceCollection("taskGroups", userId, sourceTeamId, destinationTeamId);
+  await moveWorkspaceCollection("taskTemplates", userId, sourceTeamId, destinationTeamId);
   await moveWorkspaceCollection("roadmapGoals", userId, sourceTeamId, destinationTeamId);
   await moveWorkspaceCollection("tasks", userId, sourceTeamId, destinationTeamId);
 }
@@ -392,3 +393,4 @@ export const transferAdminMembership = onCall<TransferMembershipInput>(async (re
     updatedAt: FieldValue.serverTimestamp(),
   });
 });
+

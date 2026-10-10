@@ -1,4 +1,4 @@
-import {
+﻿import {
   collection,
   doc,
   getDoc,
@@ -30,6 +30,11 @@ export type CreateTaskInput = Pick<
   | "description"
   | "originalDate"
   | "workDate"
+  | "startDate"
+  | "dueDate"
+  | "templateId"
+  | "scheduledDate"
+  | "generationSource"
   | "order"
   | "roadmapGoalId"
   | "createdBy"
@@ -40,7 +45,7 @@ export type UpdateTaskData = Pick<Task, "updatedBy"> &
   Partial<
     Pick<
       Task,
-      "title" | "description" | "groupId" | "order" | "roadmapGoalId"
+      "title" | "description" | "groupId" | "order" | "roadmapGoalId" | "startDate" | "dueDate"
     >
   >;
 
@@ -121,6 +126,11 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     description: input.description.trim(),
     originalDate,
     workDate,
+    ...(input.startDate ? { startDate: input.startDate } : {}),
+    ...(input.dueDate ? { dueDate: input.dueDate } : {}),
+    ...(input.templateId ? { templateId: input.templateId } : {}),
+    ...(input.scheduledDate ? { scheduledDate: input.scheduledDate } : {}),
+    ...(input.generationSource ? { generationSource: input.generationSource } : {}),
     status: "ACTIVE",
     order: input.order,
     roadmapGoalId: input.roadmapGoalId,
@@ -174,6 +184,14 @@ export async function updateTask(
 
   if (data.roadmapGoalId !== undefined) {
     updateData.roadmapGoalId = data.roadmapGoalId;
+  }
+
+  if (data.startDate !== undefined) {
+    updateData.startDate = data.startDate;
+  }
+
+  if (data.dueDate !== undefined) {
+    updateData.dueDate = data.dueDate;
   }
 
   await updateDoc(doc(db, TASKS_COLLECTION, taskId), updateData);
@@ -348,3 +366,4 @@ export async function updateTaskOrders(
     await batch.commit();
   }
 }
+

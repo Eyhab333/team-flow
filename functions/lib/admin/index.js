@@ -106,6 +106,7 @@ async function moveWorkspaceCollection(collectionName, userId, sourceTeamId, des
 }
 async function moveMemberWorkspace(userId, sourceTeamId, destinationTeamId) {
     await moveWorkspaceCollection("taskGroups", userId, sourceTeamId, destinationTeamId);
+    await moveWorkspaceCollection("taskTemplates", userId, sourceTeamId, destinationTeamId);
     await moveWorkspaceCollection("roadmapGoals", userId, sourceTeamId, destinationTeamId);
     await moveWorkspaceCollection("tasks", userId, sourceTeamId, destinationTeamId);
 }

@@ -1,4 +1,4 @@
-import { setGlobalOptions } from "firebase-functions/v2";
+﻿import { setGlobalOptions } from "firebase-functions/v2";
 
 setGlobalOptions({ region: "me-central2" });
 
@@ -15,8 +15,10 @@ export {
   updateAdminUser,
 } from "./admin/index.js";
 export { carryOverUnfinishedTasks } from "./tasks/carry-over.js";
+export { generateDueTaskTemplateOccurrences, ensureDueTaskTemplateOccurrenceCallable as ensureDueTaskTemplateOccurrence } from "./tasks/recurring.js";
 export { notifyTaskCreated, notifyTaskUpdated } from "./notifications/tasks.js";
 export {
   notifyRoadmapGoalCreated,
   notifyRoadmapGoalUpdated,
 } from "./notifications/roadmap.js";
+
