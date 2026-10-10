@@ -88,6 +88,7 @@ export function TaskItemRow({
       return;
     }
 
+    const shouldCelebrateCompletion = action === "complete" && task.status !== "COMPLETED";
     workflowPendingRef.current = true;
     setWorkflowAction(action);
 
@@ -105,7 +106,7 @@ export function TaskItemRow({
 
       await onChanged();
 
-      if (action === "complete") {
+      if (shouldCelebrateCompletion) {
         window.requestAnimationFrame(() => {
           void celebrateTaskCompletion();
         });
