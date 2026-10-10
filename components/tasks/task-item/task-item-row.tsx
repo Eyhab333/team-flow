@@ -43,6 +43,17 @@ function formatArabicTime(timestamp: Task["startedAt"]): string | null {
   }).format(timestamp.toDate());
 }
 
+function formatArabicDate(dateValue: string): string {
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return new Intl.DateTimeFormat("ar-EG-u-ca-gregory", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
 function getCheckboxLabel(task: Task): string {
   return task.status === "COMPLETED"
     ? `إعادة فتح المهمة: ${task.title}`
@@ -77,6 +88,12 @@ export function TaskItemRow({
   const isInProgress = task.status === "IN_PROGRESS";
   const startedAt = formatArabicTime(task.startedAt);
   const completedAt = formatArabicTime(task.completedAt);
+  const isOneTimeTask =
+    groups?.find(({ group }) => group.id === task.groupId)?.group.type === "ONE_TIME";
+  const isOverdue =
+    task.status !== "COMPLETED" &&
+    Boolean(task.dueDate) &&
+    task.dueDate < new Date().toISOString().slice(0, 10);
   const taskActionContext =
     groups && getNextTaskOrder && onChanged
       ? { groups, getNextTaskOrder, onChanged }
@@ -220,7 +237,18 @@ export function TaskItemRow({
           <span>أضافها: {task.createdByName}</span>
           {isInProgress && startedAt ? <span>بدأت {startedAt}</span> : null}
           {isCompleted && completedAt ? <span>تمت {completedAt}</span> : null}
-          {task.dueDate ? <span className={task.status !== "COMPLETED" && task.dueDate < new Date().toISOString().slice(0, 10) ? "text-destructive" : undefined}>{task.status !== "COMPLETED" && task.dueDate < new Date().toISOString().slice(0, 10) ? "متأخرة · " : ""}الاستحقاق: {task.dueDate}</span> : null}
+          {isOneTimeTask && task.startDate ? (
+            <span className={isOverdue ? "text-destructive" : undefined}>
+              {isOverdue ? "متأخرة · " : ""}
+              البداية: {formatArabicDate(task.startDate)}
+              {task.dueDate ? ` · الاستحقاق: ${formatArabicDate(task.dueDate)}` : ""}
+            </span>
+          ) : task.dueDate ? (
+            <span className={isOverdue ? "text-destructive" : undefined}>
+              {isOverdue ? "متأخرة · " : ""}
+              الاستحقاق: {task.dueDate}
+            </span>
+          ) : null}
           {task.scheduledDate && task.scheduledDate !== task.workDate ? <span>استحقاق {task.scheduledDate}</span> : null}
         </div>
       </div>
