@@ -91,9 +91,9 @@ export function TaskItemRow({
   const isOneTimeTask =
     groups?.find(({ group }) => group.id === task.groupId)?.group.type === "ONE_TIME";
   const isOverdue =
-    task.status !== "COMPLETED" &&
-    Boolean(task.dueDate) &&
-    task.dueDate < new Date().toISOString().slice(0, 10);
+    task.status !== "COMPLETED" && task.dueDate
+      ? task.dueDate < new Date().toISOString().slice(0, 10)
+      : false;
   const taskActionContext =
     groups && getNextTaskOrder && onChanged
       ? { groups, getNextTaskOrder, onChanged }
