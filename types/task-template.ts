@@ -4,7 +4,7 @@ import type { WorkdayCode } from "./task-group";
 export type TaskTemplateRecurrence =
   | { kind: "DAILY" }
   | { kind: "WEEKLY"; weekdays: WorkdayCode[] }
-  | { kind: "MONTHLY"; dayOfMonth: number };
+  | { kind: "MONTHLY"; dayOfMonth: number; firstDueDate?: string };
 
 export interface TaskTemplate {
   id: string;

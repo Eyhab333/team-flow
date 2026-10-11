@@ -1,4 +1,4 @@
-﻿import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 
@@ -8,7 +8,7 @@ type WorkdayCode = "SUN" | "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT";
 type TemplateRecurrence =
   | { kind: "DAILY" }
   | { kind: "WEEKLY"; weekdays: WorkdayCode[] }
-  | { kind: "MONTHLY"; dayOfMonth: number };
+  | { kind: "MONTHLY"; dayOfMonth: number; firstDueDate?: string };
 
 interface TaskTemplateRecord {
   id: string;
@@ -60,7 +60,10 @@ function isDue(template: TaskTemplateRecord, group: TaskGroupRecord, today: Retu
   }
   if (group.type !== "RECURRING") return false;
   if (template.recurrence.kind === "WEEKLY") return template.recurrence.weekdays.includes(today.weekday);
-  return template.recurrence.dayOfMonth === today.dayOfMonth;
+  return (
+    (!template.recurrence.firstDueDate || template.recurrence.firstDueDate <= today.date) &&
+    template.recurrence.dayOfMonth === today.dayOfMonth
+  );
 }
 export async function ensureDueTaskTemplateOccurrence(template: TaskTemplateRecord, scheduledDate = getRiyadhParts().date): Promise<boolean> {
   const today = getRiyadhParts();

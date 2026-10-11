@@ -22,7 +22,7 @@ const schema = z.object({
   description: z.string(),
   kind: z.enum(["WEEKLY", "MONTHLY"]).optional(),
   weekdays: z.array(z.string()).optional(),
-  dayOfMonth: z.coerce.number().min(1).max(31).optional(),
+  firstDueDate: z.string().optional(),
 });
 
 type FormInput = z.input<typeof schema>;
@@ -38,9 +38,56 @@ const DAYS = [
   ["SAT", "السبت"],
 ] as const;
 
+function getRiyadhDate(): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Riyadh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const part = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((item) => item.type === type)?.value ?? "";
+
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+function formatArabicDate(dateValue: string): string {
+  const [year, month, day] = dateValue.split("-").map(Number);
+
+  return new Intl.DateTimeFormat("ar-EG-u-ca-gregory", {
+    timeZone: "Asia/Riyadh",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(Date.UTC(year, month - 1, day, 12)));
+}
+
+function nextMonthlyDueDate(recurrence: Extract<TaskTemplateRecurrence, { kind: "MONTHLY" }>): string {
+  const today = getRiyadhDate();
+  const firstDueDate = recurrence.firstDueDate;
+  const threshold = firstDueDate && firstDueDate > today ? firstDueDate : today;
+  const [initialYear, initialMonth] = threshold.split("-").map(Number);
+
+  for (let offset = 0; offset < 24; offset += 1) {
+    const monthIndex = initialMonth - 1 + offset;
+    const year = initialYear + Math.floor(monthIndex / 12);
+    const month = (monthIndex % 12) + 1;
+    const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+
+    if (recurrence.dayOfMonth > daysInMonth) continue;
+
+    const candidate = `${year}-${String(month).padStart(2, "0")}-${String(recurrence.dayOfMonth).padStart(2, "0")}`;
+    if (candidate >= threshold) return candidate;
+  }
+
+  return threshold;
+}
+
 function recurrenceSummary(recurrence: TaskTemplateRecurrence): string {
   if (recurrence.kind === "DAILY") return "كل يوم عمل";
-  if (recurrence.kind === "MONTHLY") return `شهريًا — يوم ${recurrence.dayOfMonth}`;
+  if (recurrence.kind === "MONTHLY") {
+    return `شهريًا · الاستحقاق القادم: ${formatArabicDate(nextMonthlyDueDate(recurrence))}`;
+  }
 
   const weekdayNames = recurrence.weekdays.reduce<string[]>((names, weekday) => {
     const weekdayName = DAYS.find(([code]) => code === weekday)?.[1];
@@ -80,7 +127,7 @@ export function TaskTemplateList({
       description: "",
       kind: "WEEKLY",
       weekdays: [],
-      dayOfMonth: 1,
+      firstDueDate: "",
     },
   });
   const isRecurring = type === "RECURRING";
@@ -95,7 +142,10 @@ export function TaskTemplateList({
       description: template?.description ?? "",
       kind: template?.recurrence.kind === "MONTHLY" ? "MONTHLY" : "WEEKLY",
       weekdays: template?.recurrence.kind === "WEEKLY" ? template.recurrence.weekdays : [],
-      dayOfMonth: template?.recurrence.kind === "MONTHLY" ? template.recurrence.dayOfMonth : 1,
+      firstDueDate:
+        template?.recurrence.kind === "MONTHLY"
+          ? template.recurrence.firstDueDate ?? nextMonthlyDueDate(template.recurrence)
+          : "",
     });
     setOpen(true);
   }
@@ -103,12 +153,26 @@ export function TaskTemplateList({
   async function submit(values: FormValues): Promise<void> {
     if (!user) return;
 
-    const recurrence: TaskTemplateRecurrence =
-      type === "DAILY"
-        ? { kind: "DAILY" }
-        : values.kind === "MONTHLY"
-          ? { kind: "MONTHLY", dayOfMonth: values.dayOfMonth ?? 1 }
-          : { kind: "WEEKLY", weekdays: (values.weekdays ?? []) as WorkdayCode[] };
+    let recurrence: TaskTemplateRecurrence;
+
+    if (type === "DAILY") {
+      recurrence = { kind: "DAILY" };
+    } else if (values.kind === "MONTHLY") {
+      const firstDueDate = values.firstDueDate?.trim() ?? "";
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(firstDueDate)) {
+        toast.error("اختر تاريخ أول استحقاق صحيحًا");
+        return;
+      }
+
+      recurrence = {
+        kind: "MONTHLY",
+        dayOfMonth: Number(firstDueDate.slice(-2)),
+        firstDueDate,
+      };
+    } else {
+      recurrence = { kind: "WEEKLY", weekdays: (values.weekdays ?? []) as WorkdayCode[] };
+    }
 
     if (recurrence.kind === "WEEKLY" && recurrence.weekdays.length === 0) {
       toast.error("اختر يومًا واحدًا على الأقل");
@@ -273,13 +337,14 @@ export function TaskTemplateList({
                     <option value="MONTHLY">شهريًا</option>
                   </select>
                   {watch("kind") === "MONTHLY" ? (
-                    <input
-                      type="number"
-                      min="1"
-                      max="31"
-                      className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
-                      {...register("dayOfMonth")}
-                    />
+                    <label className="block text-sm">
+                      تاريخ أول استحقاق
+                      <input
+                        type="date"
+                        className="mt-1 h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
+                        {...register("firstDueDate")}
+                      />
+                    </label>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {DAYS.map(([code, label]) => (
